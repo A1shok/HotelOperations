@@ -1,3 +1,4 @@
+import os
 from fastapi.responses import Response
 from twilio.twiml.messaging_response import MessagingResponse
 from fastapi import FastAPI, Request
@@ -6,6 +7,9 @@ from ai import parse_message
 from response_engine import reply
 from datetime import datetime
 import uuid
+
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 
 def twilio_reply(message):
     resp = MessagingResponse()
