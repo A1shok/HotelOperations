@@ -42,7 +42,7 @@ async def whatsapp_webhook(req: Request):
         existing = db.query(Task).filter(Task.room == room, Task.category == ai["category"], Task.status != "closed").first()
 
         if existing:
-            return reply("duplicate", {"task": ai["category"]})
+            reply_text = reply("task_created", {"task": ai["category"],"eta": "10 minutes"})
             return twilio_reply(reply_text)
 
         new_task = Task(
@@ -59,7 +59,7 @@ async def whatsapp_webhook(req: Request):
         db.add(new_task)
         db.commit()
 
-        return reply("task_created", {"task": ai["category"], "eta": "10 minutes"})
+        reply_text = reply("task_created", {"task": ai["category"],"eta": "10 minutes"})
         return twilio_reply(reply_text)
 
     # -------------------------
@@ -71,7 +71,7 @@ async def whatsapp_webhook(req: Request):
         if task:
             task.status = "cancelled"
             db.commit()
-            return reply("cancelled", {"task": task.category})
+            reply_text = reply("task_created", {"task": ai["category"],"eta": "10 minutes"})
             return twilio_reply(reply_text)
 
     # -------------------------
@@ -85,7 +85,8 @@ async def whatsapp_webhook(req: Request):
             task.escalation_level += 1
             db.commit()
 
-            return reply("escalation", {"task": task.category, "eta": "5 minutes"})
+            reply_text = reply("task_created", {"task": ai["category"],"eta": "5 minutes"})
             return twilio_reply(reply_text)
+
 
     return reply("default", {})
