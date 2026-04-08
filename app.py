@@ -147,4 +147,4 @@ async def whatsapp_webhook(req: Request):
     return twilio_reply(reply_text)
 
 
-    return reply("default", {}) #
+    return reply("default", {}) '''
