@@ -28,7 +28,6 @@ async def whatsapp_webhook(req: Request):
     msg = form.get("Body")
     phone = form.get("From")
 
-    # Map phone → room (replace with real mapping)
     room = phone[-3:]
 
     ai = parse_message(msg)
@@ -39,10 +38,16 @@ async def whatsapp_webhook(req: Request):
     # TASK
     # -------------------------
     if ai["intent"] == "task":
-        existing = db.query(Task).filter(Task.room == room, Task.category == ai["category"], Task.status != "closed").first()
+        existing = db.query(Task).filter(
+            Task.room == room,
+            Task.category == ai["category"],
+            Task.status != "closed"
+        ).first()
 
         if existing:
-            reply_text = reply("task_created", {"task": ai["category"],"eta": "10 minutes"})
+            reply_text = reply("duplicate", {
+                "task": ai["category"]
+            })
             return twilio_reply(reply_text)
 
         new_task = Task(
@@ -59,34 +64,58 @@ async def whatsapp_webhook(req: Request):
         db.add(new_task)
         db.commit()
 
-        reply_text = reply("task_created", {"task": ai["category"],"eta": "10 minutes"})
+        reply_text = reply("task_created", {
+            "task": ai["category"],
+            "eta": "10 minutes"
+        })
+
         return twilio_reply(reply_text)
 
     # -------------------------
     # CANCEL
     # -------------------------
     if ai["intent"] == "cancel":
-        task = db.query(Task).filter(Task.room == room, Task.status != "closed").first()
+        task = db.query(Task).filter(
+            Task.room == room,
+            Task.status != "closed"
+        ).first()
 
         if task:
             task.status = "cancelled"
             db.commit()
-            reply_text = reply("task_created", {"task": ai["category"],"eta": "10 minutes"})
+
+            reply_text = reply("cancelled", {
+                "task": task.category
+            })
+
             return twilio_reply(reply_text)
 
     # -------------------------
     # NOT RECEIVED
     # -------------------------
     if ai["intent"] == "not_received":
-        task = db.query(Task).filter(Task.room == room, Task.status == "completed_unverified").first()
+        task = db.query(Task).filter(
+            Task.room == room,
+            Task.status == "completed_unverified"
+        ).first()
 
         if task:
             task.status = "in_progress"
             task.escalation_level += 1
             db.commit()
 
-            reply_text = reply("task_created", {"task": ai["category"],"eta": "5 minutes"})
+            reply_text = reply("escalation", {
+                "task": task.category,
+                "eta": "5 minutes"
+            })
+
             return twilio_reply(reply_text)
+
+    # -------------------------
+    # DEFAULT (IMPORTANT FIX)
+    # -------------------------
+    reply_text = reply("default", {})
+    return twilio_reply(reply_text)
 
 
     return reply("default", {})
