@@ -1,3 +1,12 @@
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"status": "running"}
+
+'''
 import os
 from fastapi.responses import Response
 from twilio.twiml.messaging_response import MessagingResponse
@@ -53,7 +62,6 @@ async def whatsapp_webhook(req: Request):
         resp.message(f"Error: {str(e)}")
         return Response(content=str(resp), media_type="application/xml")
 
-'''
 @app.post("/webhook")
 async def whatsapp_webhook(req: Request):
     form = await req.form()
