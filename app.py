@@ -23,6 +23,35 @@ app = FastAPI()
 # -------------------------
 @app.post("/webhook")
 async def whatsapp_webhook(req: Request):
+    from twilio.twiml.messaging_response import MessagingResponse
+    from fastapi.responses import Response
+
+    try:
+        print("🔥 WEBHOOK HIT")
+
+        form = await req.form()
+
+        msg = form.get("Body")
+        phone = form.get("From")
+
+        print("📩 msg:", msg)
+
+        resp = MessagingResponse()
+        resp.message("Now working 👍")
+
+        return Response(content=str(resp), media_type="application/xml")
+
+    except Exception as e:
+        print("❌ ERROR:", str(e))
+
+        resp = MessagingResponse()
+        resp.message("Error occurred")
+
+        return Response(content=str(resp), media_type="application/xml")
+
+'''
+@app.post("/webhook")
+async def whatsapp_webhook(req: Request):
     form = await req.form()
 
     msg = form.get("Body")
@@ -118,4 +147,4 @@ async def whatsapp_webhook(req: Request):
     return twilio_reply(reply_text)
 
 
-    return reply("default", {})
+    return reply("default", {}) #
